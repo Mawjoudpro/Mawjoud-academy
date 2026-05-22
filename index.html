@@ -4828,8 +4828,7 @@ html{ scrollbar-width:thin; scrollbar-color:rgba(45,74,62,.35) transparent; }
 
 <a href="#main-content" class="skip-link">Aller au contenu principal</a>
 
-<!-- Backdrop pour sidebar mobile -->
-<div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+<!-- Backdrop sidebar mobile : déplacé à l'intérieur de .app (fix z-index) -->
 
 <!-- ====================== SR ANNOUNCERS (étape 6) ====================== -->
 <div id="a11y-announce-polite" class="sr-only" aria-live="polite" aria-atomic="true" role="status"></div>
@@ -4874,6 +4873,10 @@ html{ scrollbar-width:thin; scrollbar-color:rgba(45,74,62,.35) transparent; }
 </div>
 
 <div class="app">
+
+  <!-- Backdrop sidebar mobile — DANS .app pour partager le contexte
+       d'empilement de la sidebar (sinon il passe au-dessus et bloque les clics) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
   <!-- ====================== SIDEBAR ====================== -->
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navigation principale">
@@ -12283,10 +12286,14 @@ function init(){
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
   if(burgerBtn) burgerBtn.addEventListener('click', toggleSidebar);
   if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
-  // Sur mobile, cliquer sur un nav-item ferme la sidebar
-  document.querySelectorAll('.nav-item').forEach(n=>{
-    n.addEventListener('click', ()=>{ if(isMobile()) closeSidebar(); });
-  });
+  // Sur mobile, cliquer sur un nav-item ferme la sidebar.
+  // Délégation sur la sidebar => couvre aussi les 10 jours générés dynamiquement.
+  const sidebarEl = document.getElementById('sidebar');
+  if(sidebarEl){
+    sidebarEl.addEventListener('click', (e)=>{
+      if(e.target.closest('.nav-item') && isMobile()) closeSidebar();
+    });
+  }
   // Escape ferme aussi la sidebar mobile
   document.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape' && document.getElementById('sidebar').classList.contains('open')){
