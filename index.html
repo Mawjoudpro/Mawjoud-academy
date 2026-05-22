@@ -90,8 +90,12 @@
     overflow-y:auto;
     border-right:1px solid rgba(0,0,0,.2);
     display:flex;flex-direction:column;
+    /* scrollbar fine — propriété standard (Firefox + tous moteurs) */
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.18) transparent;
   }
   aside.sidebar::-webkit-scrollbar{width:6px}
+  aside.sidebar::-webkit-scrollbar-track{background:transparent}
   aside.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 
   .brand{
@@ -4768,6 +4772,42 @@ html.mj-lock,body.mj-lock{ overflow:hidden !important; }
   .dz-card-inner{padding:4px 14px 16px}
   .dz-line-dz{font-size:14.5px}
 }
+
+/* ============================================================
+   PATCH MOBILE — corrige le débordement de la topbar hors écran
+   et le bouton flottant Coach qui chevauche les boutons.
+   Bloc placé en fin de CSS = priorité max, n'écrase aucune règle.
+   ============================================================ */
+@media (max-width:768px){
+  .topbar{ padding:10px 14px; gap:10px; }
+  .topbar-left{ gap:8px; min-width:0; }
+  /* "Tunis · Programme actif" est décoratif : masqué sur mobile
+     pour libérer la place du toggle Élève/Formateur */
+  .topbar-left #topbar-status,
+  .topbar-left .dot{ display:none; }
+  .topbar-right{ gap:8px; flex-shrink:0; }
+  .mode-toggle button{ padding:6px 12px; font-size:11px; }
+  .icon-btn{ width:34px; height:34px; }
+  /* Reset déjà dispo dans Réglages → retiré de la topbar mobile */
+  #reset-btn{ display:none; }
+  /* FAB Coach : plus compact et calé dans le coin */
+  .assistant-fab{ width:48px; height:48px; font-size:20px; bottom:18px; right:16px; }
+  /* marge basse pour que le FAB ne masque pas le dernier contenu */
+  .page{ padding-bottom:96px; }
+}
+@media (max-width:430px){
+  .topbar{ padding:9px 12px; }
+  .topbar-right{ gap:6px; }
+  .mode-toggle button{ padding:6px 10px; font-size:10.5px; letter-spacing:0; }
+  .a11y-toggles{ gap:4px; }
+  .a11y-toggles .icon-btn{ width:30px; height:30px; }
+}
+/* Scrollbar du document discrète (évite la grosse barre grise par défaut) */
+html{ scrollbar-width:thin; scrollbar-color:rgba(45,74,62,.35) transparent; }
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:rgba(45,74,62,.3); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover{ background:rgba(45,74,62,.5); }
 </style>
 </head>
 <body data-mode="eleve" data-contrast="normal" data-motion="normal">
@@ -10159,7 +10199,9 @@ function openSidebar(){
   bd.setAttribute('aria-hidden', 'false');
   btn.setAttribute('aria-expanded', 'true');
   btn.setAttribute('aria-label', 'Fermer le menu');
-  document.body.style.overflow = 'hidden';
+  // verrou scroll sur html + body (sinon la barre du document reste visible)
+  document.documentElement.classList.add('mj-lock');
+  document.body.classList.add('mj-lock');
   A11Y.announce('Menu ouvert.');
 }
 
@@ -10172,7 +10214,8 @@ function closeSidebar(){
   bd.setAttribute('aria-hidden', 'true');
   btn.setAttribute('aria-expanded', 'false');
   btn.setAttribute('aria-label', 'Ouvrir le menu');
-  document.body.style.overflow = '';
+  document.documentElement.classList.remove('mj-lock');
+  document.body.classList.remove('mj-lock');
 }
 
 function toggleSidebar(){
